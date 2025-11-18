@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dual Webcam Stream - Live View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        .camera-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .camera-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stream-container {
+            position: relative;
+            background: #000;
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
+        
+        .stream-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .status.connected {
+            background: rgba(34, 197, 94, 0.9);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.9);
+        }
+        
+        .recording-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            z-index: 10;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .recording-indicator::before {
+            content: '●';
+            margin-right: 5px;
+        }
+        
+        .controls {
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.recording {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        button.recording:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .gallery-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .gallery-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+        
+        @media (max-width: 1400px) {
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .camera-header {
+                font-size: 1.1em;
+                padding: 12px 15px;
+            }
+            
+            button, .gallery-link {
+                padding: 10px 18px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎥 Dual Webcam Stream</h1>
+    
+    <div class="cameras-grid">
+        <!-- Camera 1 -->
+        <div class="camera-card">
+            <div class="camera-header">
+                <span>📹 Camera 1 - C920 PRO HD</span>
+                <span class="status" id="status1">Connecting...</span>
+            </div>
+            <div class="stream-container">
+                <div class="recording-indicator" id="recIndicator1">RECORDING</div>
+                <img id="webcamStream1" src="/webcam/stream" alt="Camera 1 Stream">
+            </div>
+            <div class="controls">
+                <button onclick="takeSnapshot(1)">📸 Snapshot</button>
+                <button id="recordBtn1" onclick="toggleRecording(1)">⏺️ Start Recording</button>
+                <a href="/dvr/gallery" class="gallery-link" target="_blank">📂 Gallery</a>
+            </div>
+        </div>
+        
+        <!-- Camera 2 -->
+        <div class="camera-card">
+            <div class="camera-header">
+                <span>📹 Camera 2 - eMeet C960</span>
+                <span class="status" id="status2">Connecting...</span>
+            </div>
+            <div class="stream-container">
+                <div class="recording-indicator" id="recIndicator2">RECORDING</div>
+                <img id="webcamStream2" src="/webcam2/stream" alt="Camera 2 Stream">
+            </div>
+            <div class="controls">
+                <button onclick="takeSnapshot(2)">📸 Snapshot</button>
+                <button id="recordBtn2" onclick="toggleRecording(2)">⏺️ Start Recording</button>
+                <a href="/dvr2/gallery" class="gallery-link" target="_blank">📂 Gallery</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Track recording state for each camera
+        const recordingState = {
+            1: false,
+            2: false
+        };
+        
+        // Handle stream errors and status
+        function setupCamera(cameraNum) {
+            const stream = document.getElementById(`webcamStream${cameraNum}`);
+            const status = document.getElementById(`status${cameraNum}`);
+            
+            stream.onload = () => {
+                status.textContent = '● Live';
+                status.className = 'status connected';
+            };
+            
+            stream.onerror = () => {
+                status.textContent = '● Error';
+                status.className = 'status error';
+                setTimeout(() => {
+                    stream.src = stream.src.split('?')[0] + '?t=' + new Date().getTime();
+                }, 5000);
+            };
+            
+            // Check recording status periodically
+            checkRecordingStatus(cameraNum);
+            setInterval(() => checkRecordingStatus(cameraNum), 2000);
+        }
+        
+        function takeSnapshot(cameraNum) {
+            const url = cameraNum === 1 ? '/webcam/snapshot' : '/webcam2/snapshot';
+            window.open(url, '_blank');
+        }
+        
+        async function toggleRecording(cameraNum) {
+            const btn = document.getElementById(`recordBtn${cameraNum}`);
+            const indicator = document.getElementById(`recIndicator${cameraNum}`);
+            const baseUrl = cameraNum === 1 ? '/dvr' : '/dvr2';
+            
+            btn.disabled = true;
+            
+            try {
+                if (recordingState[cameraNum]) {
+                    // Stop recording
+                    const response = await fetch(`${baseUrl}/stop`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        recordingState[cameraNum] = false;
+                        btn.textContent = '⏺️ Start Recording';
+                        btn.className = '';
+                        indicator.style.display = 'none';
+                    }
+                } else {
+                    // Start recording
+                    const response = await fetch(`${baseUrl}/start`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        recordingState[cameraNum] = true;
+                        btn.textContent = '⏹️ Stop Recording';
+                        btn.className = 'recording';
+                        indicator.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Recording error:', error);
+                alert('Failed to toggle recording');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        async function checkRecordingStatus(cameraNum) {
+            const baseUrl = cameraNum === 1 ? '/dvr' : '/dvr2';
+            try {
+                const response = await fetch(`${baseUrl}/status`);
+                const data = await response.json();
+                
+                const btn = document.getElementById(`recordBtn${cameraNum}`);
+                const indicator = document.getElementById(`recIndicator${cameraNum}`);
+                
+                if (data.recording) {
+                    recordingState[cameraNum] = true;
+                    btn.textContent = '⏹️ Stop Recording';
+                    btn.className = 'recording';
+                    indicator.style.display = 'block';
+                } else {
+                    recordingState[cameraNum] = false;
+                    btn.textContent = '⏺️ Start Recording';
+                    btn.className = '';
+                    indicator.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }
+        
+        // Initialize both cameras
+        setupCamera(1);
+        setupCamera(2);
+    </script>
+</body>
+</html>

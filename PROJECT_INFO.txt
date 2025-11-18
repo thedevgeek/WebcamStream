@@ -1,0 +1,178 @@
+==============================================
+   DUAL WEBCAM DVR SYSTEM - PROJECT INFO
+==============================================
+
+VERSION: 2.0
+DATE: November 2025
+STATUS: Production Ready
+
+==============================================
+FEATURES
+==============================================
+
+✓ Dual camera support (independent controls)
+✓ Live MJPEG streaming with weather overlay
+✓ DVR recording (H.264 MP4 format)
+✓ Recording gallery with preview
+✓ Snapshot capture
+✓ Responsive web interface
+✓ Systemd service integration
+✓ Nginx reverse proxy
+
+==============================================
+FILE STRUCTURE
+==============================================
+
+Core Files:
+  webcam_overlay.py       - Camera 1 backend service
+  webcam_overlay2.py      - Camera 2 backend service
+  index_dual.html         - Dual camera web interface
+
+Installation:
+  install.sh              - Automated installer script
+  requirements.txt        - Python dependencies
+
+Documentation:
+  README.md               - Complete documentation
+  QUICKSTART.md           - Quick start guide
+  LICENSE                 - MIT license
+
+Storage:
+  recordings/             - Camera 1 recordings
+  recordings2/            - Camera 2 recordings
+
+==============================================
+SYSTEM REQUIREMENTS
+==============================================
+
+Hardware:
+  - Linux system (Ubuntu 20.04+ recommended)
+  - 1-2 USB webcams (UVC compatible)
+  - 2GB+ RAM
+  - Storage for recordings
+
+Software:
+  - Python 3.8+
+  - OpenCV (python3-opencv)
+  - FFmpeg with libx264
+  - Nginx web server
+  - v4l-utils
+
+==============================================
+NETWORK CONFIGURATION
+==============================================
+
+Services:
+  - Port 8090: Camera 1 Python service
+  - Port 8091: Camera 2 Python service
+  - Port 80:   Nginx reverse proxy
+
+Endpoints:
+  Camera 1:
+    /webcam/stream       - Live stream
+    /webcam/snapshot     - Snapshot capture
+    /dvr/start           - Start recording
+    /dvr/stop            - Stop recording
+    /dvr/gallery         - Recordings gallery
+
+  Camera 2:
+    /webcam2/stream      - Live stream
+    /webcam2/snapshot    - Snapshot capture
+    /dvr2/start          - Start recording
+    /dvr2/stop           - Stop recording
+    /dvr2/gallery        - Recordings gallery
+
+==============================================
+QUICK INSTALLATION
+==============================================
+
+1. Run installer:
+   sudo ./install.sh
+
+2. Access web interface:
+   http://<server-ip>
+
+For detailed instructions, see QUICKSTART.md
+
+==============================================
+MANAGEMENT COMMANDS
+==============================================
+
+Service Control:
+  sudo systemctl status webcam-overlay
+  sudo systemctl status webcam-overlay2
+  sudo systemctl restart webcam-overlay
+  sudo systemctl restart webcam-overlay2
+
+View Logs:
+  sudo journalctl -u webcam-overlay -f
+  sudo journalctl -u webcam-overlay2 -f
+
+Test Webcams:
+  ls -l /dev/video*
+  v4l2-ctl --device=/dev/video0 --info
+
+==============================================
+PERFORMANCE
+==============================================
+
+Per Camera Resource Usage:
+  CPU:     5-15% (varies with resolution/FPS)
+  RAM:     50-100 MB
+  Disk:    ~10-20 MB per minute (H.264)
+  Network: ~1-5 Mbps per viewer
+
+==============================================
+TECHNICAL DETAILS
+==============================================
+
+Recording Pipeline:
+  1. OpenCV captures from V4L2 device
+  2. Date/time/weather overlay applied
+  3. Stream: JPEG encoding → MJPEG HTTP
+  4. Record: BGR24 → FFmpeg stdin → H.264 MP4
+
+Video Format:
+  Container:    MP4
+  Codec:        H.264 (libx264)
+  Pixel Format: yuv420p
+  Preset:       ultrafast
+  Quality:      CRF 23
+
+==============================================
+SECURITY NOTES
+==============================================
+
+⚠ WARNING: No authentication by default!
+
+Recommendations:
+  1. Use behind firewall
+  2. Add nginx HTTP basic auth
+  3. Configure HTTPS/SSL
+  4. Restrict IP access
+
+==============================================
+SUPPORT & TROUBLESHOOTING
+==============================================
+
+Common Issues:
+  - No webcam detected:
+    Check: ls -l /dev/video*
+  
+  - Service won't start:
+    Check: sudo journalctl -u webcam-overlay -n 50
+  
+  - Stream not accessible:
+    Check: sudo nginx -t
+    Check: curl http://localhost:8090/?action=stream
+
+Full documentation: README.md
+
+==============================================
+LICENSE
+==============================================
+
+MIT License - Free to use and modify
+See LICENSE file for details
+
+==============================================
