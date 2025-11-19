@@ -25,16 +25,6 @@ A professional webcam streaming and DVR recording system with live MJPEG streami
 - 🔄 **Independent Controls** - Separate recording, snapshot, and gallery for each
 - 📱 **Responsive Interface** - Works on desktop and mobile devices
 
-### Camera Controls
-- 🎛️ **Pan & Tilt** - Camera 1: Adjust camera direction (±36000 units)
-- ☀️ **Brightness** - Adjust image brightness (Camera 1: 0-255, Camera 2: -64 to 64)
-- 🌓 **Contrast** - Adjust image contrast (Camera 1: 0-255, Camera 2: 0-64)
-- 🎨 **Saturation** - Camera 2: Adjust color saturation (0-128)
-- ✨ **Sharpness** - Camera 2: Adjust image sharpness (0-6)
-- ↻ **Reset** - Restore all controls to factory defaults
-
-> **Note:** Camera controls vary by hardware capabilities. Camera 1 (C920 PRO HD) supports pan/tilt controls (note: this is a fixed lens camera without optical zoom), while Camera 2 (eMeet C960) provides basic image adjustments.
-
 ## System Requirements
 
 ### Hardware
@@ -262,69 +252,6 @@ sudo systemctl restart webcam-overlay2
 # Start/stop recording via curl
 curl http://localhost:8090/dvr/start
 curl http://localhost:8090/dvr/stop
-
-# Camera controls via curl
-curl "http://localhost:8090/camera/control?brightness=150"
-curl "http://localhost:8090/camera/control?zoom=200&pan=3600"
-curl "http://localhost:8091/camera/control?brightness=10&contrast=40"
-curl "http://localhost:8090/camera/control?reset=1"
-```
-
-## Camera Control API
-
-Camera controls are accessible via HTTP GET requests:
-
-### Camera 1 (C920 PRO HD) - Pan & Tilt Controls
-```bash
-# Pan (-36000 to 36000, step 3600)
-/camera/control?pan=3600
-
-# Tilt (-36000 to 36000, step 3600)
-/camera/control?tilt=-3600
-
-# Brightness (0-255)
-/camera/control?brightness=150
-
-# Contrast (0-255)
-/camera/control?contrast=200
-
-# Multiple controls
-/camera/control?pan=3600&brightness=180&contrast=190
-
-# Reset to defaults
-/camera/control?reset=1
-```
-
-### Camera 2 (eMeet C960) - Basic Adjustments
-```bash
-# Brightness (-64 to 64)
-/camera2/control?brightness=10
-
-# Contrast (0-64)
-/camera2/control?contrast=40
-
-# Saturation (0-128)
-/camera2/control?saturation=80
-
-# Sharpness (0-6)
-/camera2/control?sharpness=4
-
-# Multiple controls
-/camera2/control?brightness=5&contrast=35&saturation=70
-
-# Reset to defaults
-/camera2/control?reset=1
-```
-
-All endpoints return JSON:
-```json
-{
-  "success": true,
-  "controls": {
-    "brightness": 150,
-    "contrast": 200
-  }
-}
 ```
 
 ## Troubleshooting
@@ -370,21 +297,6 @@ sudo nginx -t
 sudo tail -f /var/log/nginx/error.log
 ```
 
-### Camera Controls Not Working
-```bash
-# Check available controls for Camera 1
-v4l2-ctl --device=/dev/video0 --list-ctrls
-
-# Check available controls for Camera 2
-v4l2-ctl --device=/dev/video2 --list-ctrls
-
-# Test control endpoint directly
-curl "http://localhost:8090/camera/control?brightness=150"
-
-# View service logs for errors
-sudo journalctl -u webcam-overlay -n 50 | grep control
-```
-
 ### Weather Not Updating
 - Verify API key is valid
 - Check API call limit (1000 calls/day on free tier)
@@ -401,7 +313,6 @@ WebcamStream/
 ├── recordings/             # Camera 1 recordings storage
 ├── recordings2/            # Camera 2 recordings storage
 ├── README.md               # This file
-├── CAMERA_CONTROLS.md      # Camera controls guide
 ├── DVR_GUIDE.md           # Detailed DVR usage guide
 └── API_RATE_LIMITING.md   # Weather API information
 ```
