@@ -18,7 +18,7 @@ import glob
 import subprocess
 
 # Configuration
-WEBCAM_DEVICE = 2  # Second camera (eMeet C960)
+WEBCAM_DEVICE = 2
 STREAM_WIDTH = 1280
 STREAM_HEIGHT = 720
 STREAM_FPS = 30
@@ -191,7 +191,7 @@ def capture_frames():
     # Set buffer size to 1 to avoid stale frames
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
     
-    # Use YUYV format instead of MJPEG
+    # Use YUYV format instead of MJPEG for eMeet C960
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('Y', 'U', 'Y', 'V'))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, STREAM_WIDTH)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, STREAM_HEIGHT)
@@ -259,7 +259,7 @@ def start_recording():
         if is_recording:
             return {"success": False, "error": "Already recording"}
         
-        # Create recordings directory if it doesn't exist
+        # Create recordings2 directory if it doesn't exist
         os.makedirs(RECORDINGS_DIR, exist_ok=True)
         
         # Generate filename with timestamp
@@ -339,17 +339,17 @@ def stop_recording():
         
         return result
 
-def get_recordings():
-    """Get list of all recordings"""
+def get_recordings2():
+    """Get list of all recordings2"""
     if not os.path.exists(RECORDINGS_DIR):
         return []
     
-    recordings = []
+    recordings2 = []
     # Only show MP4 files (skip temp AVI files)
     for filepath in sorted(glob.glob(os.path.join(RECORDINGS_DIR, "*.mp4")), reverse=True):
         stat = os.stat(filepath)
         size_mb = stat.st_size / (1024*1024)
-        recordings.append({
+        recordings2.append({
             "filename": os.path.basename(filepath),
             "size": stat.st_size,
             "size_mb": f"{size_mb:.2f}" if size_mb >= 0.01 else "<0.01",
@@ -357,7 +357,7 @@ def get_recordings():
             "timestamp": stat.st_ctime
         })
     
-    return recordings
+    return recordings2
 
 class StreamHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -647,12 +647,12 @@ class StreamHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(status).encode('utf-8'))
         
         elif self.path == '/dvr/list':
-            # List all recordings
-            recordings = get_recordings()
+            # List all recordings2
+            recordings2 = get_recordings()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(recordings).encode('utf-8'))
+            self.wfile.write(json.dumps(recordings2).encode('utf-8'))
         
         elif self.path.startswith('/dvr/download/'):
             # Download a recording
@@ -694,8 +694,8 @@ class StreamHandler(BaseHTTPRequestHandler):
                 self.send_error(404, "Recording not found")
         
         elif self.path == '/dvr/gallery' or self.path == '/dvr/gallery/':
-            # Display recordings gallery
-            recordings = get_recordings()
+            # Display recordings2 gallery
+            recordings2 = get_recordings()
             
             # Determine base path based on port
             dvr_base = '/dvr' if STREAM_PORT == 8090 else '/dvr2'
@@ -730,7 +730,7 @@ class StreamHandler(BaseHTTPRequestHandler):
             color: #333;
             margin-bottom: 20px;
         }}
-        .recordings-grid {{
+        .recordings2-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
@@ -817,12 +817,12 @@ class StreamHandler(BaseHTTPRequestHandler):
             background: #ef4444;
             color: white;
         }}
-        .no-recordings {{
+        .no-recordings2 {{
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }}
-        .no-recordings-icon {{
+        .no-recordings2-icon {{
             font-size: 4em;
             margin-bottom: 20px;
         }}
@@ -840,7 +840,7 @@ class StreamHandler(BaseHTTPRequestHandler):
         }}
         @media (max-width: 768px) {{
             .container {{ padding: 15px; }}
-            .recordings-grid {{
+            .recordings2-grid {{
                 grid-template-columns: 1fr;
             }}
         }}
@@ -885,13 +885,13 @@ class StreamHandler(BaseHTTPRequestHandler):
 <body>
     <div class="container">
         <h1>🎬 DVR Recordings Gallery</h1>
-        <p style="color: #666; margin-bottom: 20px;">Your saved webcam recordings</p>
+        <p style="color: #666; margin-bottom: 20px;">Your saved webcam recordings2</p>
         
-        <div class="recordings-grid">
+        <div class="recordings2-grid">
 ''';
             
-            if recordings:
-                for rec in recordings:
+            if recordings2:
+                for rec in recordings2:
                     html += f'''
             <div class="recording-card">
                 <div class="video-preview">
@@ -915,8 +915,8 @@ class StreamHandler(BaseHTTPRequestHandler):
 ''';
             else:
                 html += '''
-            <div class="no-recordings">
-                <div class="no-recordings-icon">📹</div>
+            <div class="no-recordings2">
+                <div class="no-recordings2-icon">📹</div>
                 <h2>No Recordings Yet</h2>
                 <p>Start recording from the webcam viewer to see your videos here.</p>
             </div>
@@ -931,6 +931,81 @@ class StreamHandler(BaseHTTPRequestHandler):
 </html>''';
             
             self.wfile.write(html.encode('utf-8'))
+        
+        elif self.path.startswith('/camera/control'):
+            # Camera control endpoint (zoom, pan, tilt, etc.)
+            from urllib.parse import parse_qs, urlparse
+            params = parse_qs(urlparse(self.path).query)
+            
+            try:
+                result = {}
+                device = f'/dev/video{WEBCAM_DEVICE}'
+                
+                # Handle different control types
+                if 'zoom' in params:
+                    zoom_value = int(params['zoom'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=zoom_absolute={zoom_value}'], 
+                                 check=True, capture_output=True)
+                    result['zoom'] = zoom_value
+                
+                if 'pan' in params:
+                    pan_value = int(params['pan'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=pan_absolute={pan_value}'], 
+                                 check=True, capture_output=True)
+                    result['pan'] = pan_value
+                
+                if 'tilt' in params:
+                    tilt_value = int(params['tilt'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=tilt_absolute={tilt_value}'], 
+                                 check=True, capture_output=True)
+                    result['tilt'] = tilt_value
+                
+                if 'brightness' in params:
+                    brightness_value = int(params['brightness'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=brightness={brightness_value}'], 
+                                 check=True, capture_output=True)
+                    result['brightness'] = brightness_value
+                
+                if 'contrast' in params:
+                    contrast_value = int(params['contrast'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=contrast={contrast_value}'], 
+                                 check=True, capture_output=True)
+                    result['contrast'] = contrast_value
+                
+                if 'saturation' in params:
+                    saturation_value = int(params['saturation'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=saturation={saturation_value}'], 
+                                 check=True, capture_output=True)
+                    result['saturation'] = saturation_value
+                
+                if 'sharpness' in params:
+                    sharpness_value = int(params['sharpness'][0])
+                    subprocess.run(['v4l2-ctl', f'--device={device}', f'--set-ctrl=sharpness={sharpness_value}'], 
+                                 check=True, capture_output=True)
+                    result['sharpness'] = sharpness_value
+                
+                if 'reset' in params:
+                    # Reset to defaults for Camera 2
+                    subprocess.run(['v4l2-ctl', f'--device={device}', '--set-ctrl=brightness=0'], 
+                                 capture_output=True)
+                    subprocess.run(['v4l2-ctl', f'--device={device}', '--set-ctrl=contrast=32'], 
+                                 capture_output=True)
+                    subprocess.run(['v4l2-ctl', f'--device={device}', '--set-ctrl=saturation=64'], 
+                                 capture_output=True)
+                    subprocess.run(['v4l2-ctl', f'--device={device}', '--set-ctrl=sharpness=3'], 
+                                 capture_output=True)
+                    result['reset'] = True
+                
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'controls': result}).encode('utf-8'))
+                
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': False, 'error': str(e)}).encode('utf-8'))
         
         else:
             self.send_error(404)

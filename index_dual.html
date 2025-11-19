@@ -39,6 +39,8 @@
             border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .camera-header {
@@ -55,15 +57,16 @@
         .stream-container {
             position: relative;
             background: #000;
-            width: 100%;
-            aspect-ratio: 16/9;
+            width: fit-content;
+            margin: 0 auto;
+            overflow: hidden;
         }
         
         .stream-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
             display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
         }
         
         .status {
@@ -164,6 +167,108 @@
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
         }
         
+        .camera-controls {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .control-section {
+            margin-bottom: 15px;
+        }
+        
+        .control-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .slider-container {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #d1d5db;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .value-display {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9em;
+        }
+        
+        .ptz-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .ptz-btn {
+            width: 60px;
+            height: 40px;
+            padding: 8px;
+            font-size: 0.9em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .ptz-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .reset-btn:hover {
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+        
         @media (max-width: 1400px) {
             .cameras-grid {
                 grid-template-columns: 1fr;
@@ -206,6 +311,55 @@
                 <button id="recordBtn1" onclick="toggleRecording(1)">⏺️ Start Recording</button>
                 <a href="/dvr/gallery" class="gallery-link" target="_blank">📂 Gallery</a>
             </div>
+            <div class="camera-controls">
+                <div class="control-section">
+                    <label class="control-label">Pan & Tilt</label>
+                    <div class="ptz-controls">
+                        <div></div>
+                        <button class="ptz-btn" onclick="adjustPTZ(1, 'tilt', 3600)">▲</button>
+                        <div></div>
+                        <button class="ptz-btn" onclick="adjustPTZ(1, 'pan', -3600)">◄</button>
+                        <button class="ptz-btn" onclick="adjustPTZ(1, 'reset', 0)">●</button>
+                        <button class="ptz-btn" onclick="adjustPTZ(1, 'pan', 3600)">►</button>
+                        <div></div>
+                        <button class="ptz-btn" onclick="adjustPTZ(1, 'tilt', -3600)">▼</button>
+                        <div></div>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Zoom</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="zoom1" min="100" max="500" value="100" 
+                                   oninput="updateSlider(1, 'zoom', this.value)">
+                        </div>
+                        <span class="value-display" id="zoom1-val">100</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Brightness</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="brightness1" min="0" max="255" value="128" 
+                                   oninput="updateSlider(1, 'brightness', this.value)">
+                        </div>
+                        <span class="value-display" id="brightness1-val">128</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Contrast</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="contrast1" min="0" max="255" value="128" 
+                                   oninput="updateSlider(1, 'contrast', this.value)">
+                        </div>
+                        <span class="value-display" id="contrast1-val">128</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <button class="reset-btn" onclick="resetCamera(1)">↻ Reset All Controls</button>
+                </div>
+            </div>
         </div>
         
         <!-- Camera 2 -->
@@ -222,6 +376,51 @@
                 <button onclick="takeSnapshot(2)">📸 Snapshot</button>
                 <button id="recordBtn2" onclick="toggleRecording(2)">⏺️ Start Recording</button>
                 <a href="/dvr2/gallery" class="gallery-link" target="_blank">📂 Gallery</a>
+            </div>
+            <div class="camera-controls">
+                <div class="control-section">
+                    <label class="control-label">Brightness</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="brightness2" min="-64" max="64" value="0" 
+                                   oninput="updateSlider(2, 'brightness', this.value)">
+                        </div>
+                        <span class="value-display" id="brightness2-val">0</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Contrast</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="contrast2" min="0" max="64" value="32" 
+                                   oninput="updateSlider(2, 'contrast', this.value)">
+                        </div>
+                        <span class="value-display" id="contrast2-val">32</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Saturation</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="saturation2" min="0" max="128" value="64" 
+                                   oninput="updateSlider(2, 'saturation', this.value)">
+                        </div>
+                        <span class="value-display" id="saturation2-val">64</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <label class="control-label">Sharpness</label>
+                    <div class="control-row">
+                        <div class="slider-container">
+                            <input type="range" id="sharpness2" min="0" max="6" value="3" 
+                                   oninput="updateSlider(2, 'sharpness', this.value)">
+                        </div>
+                        <span class="value-display" id="sharpness2-val">3</span>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <button class="reset-btn" onclick="resetCamera(2)">↻ Reset All Controls</button>
+                </div>
             </div>
         </div>
     </div>
@@ -328,6 +527,84 @@
         // Initialize both cameras
         setupCamera(1);
         setupCamera(2);
+        
+        // Camera control functions
+        async function updateSlider(cameraNum, control, value) {
+            const valueDisplay = document.getElementById(`${control}${cameraNum}-val`);
+            valueDisplay.textContent = value;
+            
+            const baseUrl = cameraNum === 1 ? '/camera/control' : '/camera2/control';
+            try {
+                const response = await fetch(`${baseUrl}?${control}=${value}`);
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to update camera control:', data);
+                }
+            } catch (error) {
+                console.error('Camera control error:', error);
+            }
+        }
+        
+        // PTZ controls for Camera 1 only
+        const ptzState = {
+            pan: 0,
+            tilt: 0
+        };
+        
+        async function adjustPTZ(cameraNum, action, value) {
+            if (cameraNum !== 1) return; // Only Camera 1 has PTZ
+            
+            if (action === 'reset') {
+                ptzState.pan = 0;
+                ptzState.tilt = 0;
+            } else if (action === 'pan') {
+                ptzState.pan = Math.max(-36000, Math.min(36000, ptzState.pan + value));
+            } else if (action === 'tilt') {
+                ptzState.tilt = Math.max(-36000, Math.min(36000, ptzState.tilt + value));
+            }
+            
+            try {
+                const response = await fetch(`/camera/control?pan=${ptzState.pan}&tilt=${ptzState.tilt}`);
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to update PTZ:', data);
+                }
+            } catch (error) {
+                console.error('PTZ control error:', error);
+            }
+        }
+        
+        async function resetCamera(cameraNum) {
+            const baseUrl = cameraNum === 1 ? '/camera/control' : '/camera2/control';
+            try {
+                const response = await fetch(`${baseUrl}?reset=1`);
+                const data = await response.json();
+                if (data.success) {
+                    // Reset UI controls to defaults
+                    if (cameraNum === 1) {
+                        document.getElementById('zoom1').value = 100;
+                        document.getElementById('zoom1-val').textContent = '100';
+                        document.getElementById('brightness1').value = 128;
+                        document.getElementById('brightness1-val').textContent = '128';
+                        document.getElementById('contrast1').value = 128;
+                        document.getElementById('contrast1-val').textContent = '128';
+                        ptzState.pan = 0;
+                        ptzState.tilt = 0;
+                    } else {
+                        document.getElementById('brightness2').value = 0;
+                        document.getElementById('brightness2-val').textContent = '0';
+                        document.getElementById('contrast2').value = 32;
+                        document.getElementById('contrast2-val').textContent = '32';
+                        document.getElementById('saturation2').value = 64;
+                        document.getElementById('saturation2-val').textContent = '64';
+                        document.getElementById('sharpness2').value = 3;
+                        document.getElementById('sharpness2-val').textContent = '3';
+                    }
+                }
+            } catch (error) {
+                console.error('Reset camera error:', error);
+            }
+        }
     </script>
 </body>
 </html>
