@@ -648,7 +648,7 @@ class StreamHandler(BaseHTTPRequestHandler):
         
         elif self.path == '/dvr/list':
             # List all recordings2
-            recordings2 = get_recordings()
+            recordings2 = get_recordings2()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
@@ -695,7 +695,7 @@ class StreamHandler(BaseHTTPRequestHandler):
         
         elif self.path == '/dvr/gallery' or self.path == '/dvr/gallery/':
             # Display recordings2 gallery
-            recordings2 = get_recordings()
+            recordings2 = get_recordings2()
             
             # Determine base path based on port
             dvr_base = '/dvr' if STREAM_PORT == 8090 else '/dvr2'
