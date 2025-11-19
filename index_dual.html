@@ -327,16 +327,6 @@
                     </div>
                 </div>
                 <div class="control-section">
-                    <label class="control-label">Zoom</label>
-                    <div class="control-row">
-                        <div class="slider-container">
-                            <input type="range" id="zoom1" min="100" max="500" value="100" 
-                                   oninput="updateSlider(1, 'zoom', this.value)">
-                        </div>
-                        <span class="value-display" id="zoom1-val">100</span>
-                    </div>
-                </div>
-                <div class="control-section">
                     <label class="control-label">Brightness</label>
                     <div class="control-row">
                         <div class="slider-container">
@@ -582,8 +572,6 @@
                 if (data.success) {
                     // Reset UI controls to defaults
                     if (cameraNum === 1) {
-                        document.getElementById('zoom1').value = 100;
-                        document.getElementById('zoom1-val').textContent = '100';
                         document.getElementById('brightness1').value = 128;
                         document.getElementById('brightness1-val').textContent = '128';
                         document.getElementById('contrast1').value = 128;

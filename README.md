@@ -27,14 +27,13 @@ A professional webcam streaming and DVR recording system with live MJPEG streami
 
 ### Camera Controls
 - 🎛️ **Pan & Tilt** - Camera 1: Adjust camera direction (±36000 units)
-- 🔍 **Zoom** - Camera 1: Digital zoom from 100-500
 - ☀️ **Brightness** - Adjust image brightness (Camera 1: 0-255, Camera 2: -64 to 64)
 - 🌓 **Contrast** - Adjust image contrast (Camera 1: 0-255, Camera 2: 0-64)
 - 🎨 **Saturation** - Camera 2: Adjust color saturation (0-128)
 - ✨ **Sharpness** - Camera 2: Adjust image sharpness (0-6)
 - ↻ **Reset** - Restore all controls to factory defaults
 
-> **Note:** Camera controls vary by hardware capabilities. Camera 1 (C920 PRO HD) supports full PTZ controls, while Camera 2 (eMeet C960) provides basic image adjustments.
+> **Note:** Camera controls vary by hardware capabilities. Camera 1 (C920 PRO HD) supports pan/tilt controls (note: this is a fixed lens camera without optical zoom), while Camera 2 (eMeet C960) provides basic image adjustments.
 
 ## System Requirements
 
@@ -275,11 +274,8 @@ curl "http://localhost:8090/camera/control?reset=1"
 
 Camera controls are accessible via HTTP GET requests:
 
-### Camera 1 (C920 PRO HD) - Full PTZ Controls
+### Camera 1 (C920 PRO HD) - Pan & Tilt Controls
 ```bash
-# Zoom (100-500)
-/camera/control?zoom=200
-
 # Pan (-36000 to 36000, step 3600)
 /camera/control?pan=3600
 
@@ -293,7 +289,7 @@ Camera controls are accessible via HTTP GET requests:
 /camera/control?contrast=200
 
 # Multiple controls
-/camera/control?zoom=300&brightness=180&contrast=190
+/camera/control?pan=3600&brightness=180&contrast=190
 
 # Reset to defaults
 /camera/control?reset=1

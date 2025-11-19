@@ -12,15 +12,15 @@ The system provides real-time camera control via web interface and REST API. Con
 
 | Control | Range | Default | Description |
 |---------|-------|---------|-------------|
-| **Zoom** | 100-500 | 100 | Digital zoom level |
 | **Pan** | -36000 to 36000 | 0 | Horizontal position (step: 3600 = 10°) |
 | **Tilt** | -36000 to 36000 | 0 | Vertical position (step: 3600 = 10°) |
 | **Brightness** | 0-255 | 128 | Image brightness |
 | **Contrast** | 0-255 | 128 | Image contrast |
 
+> **Note**: The C920 PRO HD has a fixed focal length lens and does not support optical or digital zoom, despite the zoom_absolute control existing in the V4L2 driver.
+
 ### Web Interface Controls
 - **Pan & Tilt Pad**: 9-button directional pad with center reset
-- **Zoom Slider**: Adjust digital zoom from 1.0x to 5.0x
 - **Brightness Slider**: Control image brightness
 - **Contrast Slider**: Control image contrast
 - **Reset Button**: Restore all controls to factory defaults
@@ -28,9 +28,6 @@ The system provides real-time camera control via web interface and REST API. Con
 ### API Examples
 
 ```bash
-# Zoom in
-curl "http://your-server/camera/control?zoom=200"
-
 # Pan right 10 degrees
 curl "http://your-server/camera/control?pan=3600"
 
@@ -40,8 +37,8 @@ curl "http://your-server/camera/control?tilt=3600"
 # Adjust brightness and contrast
 curl "http://your-server/camera/control?brightness=180&contrast=200"
 
-# Full PTZ positioning
-curl "http://your-server/camera/control?zoom=300&pan=7200&tilt=-3600"
+# Full PT positioning
+curl "http://your-server/camera/control?pan=7200&tilt=-3600&brightness=180"
 
 # Reset all to defaults
 curl "http://your-server/camera/control?reset=1"
